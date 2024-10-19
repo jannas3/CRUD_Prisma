@@ -1,0 +1,96 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model SubCategoria {
+  IDsubcategoria Int    @id @default(autoincrement())
+  descricao      String @db.VarChar(100)
+
+  Categoria   Categoria @relation(fields: [IDCategoria], references: [IDCategoria])
+  IDCategoria Int
+
+  produtos Produto[]
+
+  @@map("subcategorias")
+}
+
+model Categoria {
+  IDCategoria         Int            @id @default(autoincrement())
+  descricao_categoria String         @db.VarChar(100)
+  subcategorias       SubCategoria[]
+
+  @@map("categoria")
+}
+
+model Produto {
+  IDProduto             Int           @id @default(autoincrement())
+  modelo_produto        String        @db.VarChar(100)
+  fabricante_produto    String        @db.VarChar(100)
+  preco_produto         Decimal       @db.Decimal(10, 2)
+  qtdDisponivel_produto Int           @db.Int
+  IDSubcategoria        Int
+  subcategoria          SubCategoria? @relation(fields: [IDSubcategoria], references: [IDsubcategoria])
+  itemCompra            ItemCompra[]
+
+  @@map("produtos")
+}
+
+model ItemCompra {
+  IDItemCompra   Int     @id @default(autoincrement())
+  IDCompras      Int
+  IDProduto      Int
+  precoUnitario  Decimal @db.Decimal(10, 2)
+  qtd_itemCompra Int     @db.Int
+  NSerie         String  @db.VarChar(50)
+  compra         Compras @relation(fields: [IDCompras], references: [IDCompras])
+  produto        Produto @relation(fields: [IDProduto], references: [IDProduto])
+
+  @@map("itemcompra")
+}
+
+model Cliente {
+  IDCliente              Int       @id @default(autoincrement())
+  CPF_cliente            String    @db.VarChar(11)
+  nomeCompleto_cliente   String    @db.VarChar(100)
+  NCelular_cliente       String    @db.VarChar(15)
+  email_cliente          String    @db.VarChar(100)
+  dataNascimento_cliente DateTime  @db.Date
+  Enderecos_cliente      String    @db.Text
+  compras                Compras[]
+
+  @@map("clientes")
+}
+
+model FormaPagamento {
+  IDPagamento     Int       @id @default(autoincrement())
+  formasPagamento String    @db.VarChar(50)
+  compras         Compras[]
+
+  @@map("formapagamento")
+}
+
+model Compras {
+  IDCompras            Int            @id @default(autoincrement())
+  enderecoEnvio_compra String         @db.Text
+  descontoAplicado     Decimal?       @db.Decimal(5, 2)
+  total_compra         Decimal        @db.Decimal(10, 2)
+  dataHora             DateTime       @db.Date
+  IDCliente            Int
+  IDPagamento          Int
+  itemCompra           ItemCompra[]
+  cliente              Cliente        @relation(fields: [IDCliente], references: [IDCliente])
+  pagamento            FormaPagamento @relation(fields: [IDPagamento], references: [IDPagamento])
+
+  @@map("compras")
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
