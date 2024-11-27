@@ -7,7 +7,7 @@ export const checkCpfIsAvailable = async (cpf: string): Promise<boolean> => {
   const cliente = await prisma.cliente.findMany({
     where: { CPF_cliente: cpf },
   });
-  return cliente.length === 0; // Retorna true se não encontrar clientes com esse CPF
+  return cliente.length === 0;
 };
 
 export const checkEmailIsAvailable = async (

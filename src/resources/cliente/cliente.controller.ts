@@ -1,5 +1,6 @@
 import { Request, Response } from "express";
 import { ReasonPhrases, StatusCodes } from "http-status-codes";
+import { CreateClienteDto } from "./cliente.types";
 import {
   checkCpfIsAvailable,
   checkEmailIsAvailable,
@@ -23,13 +24,24 @@ const index = async (req: Request, res: Response) => {
 };
 
 const create = async (req: Request, res: Response) => {
-  const cliente = req.body;
+  const cliente: CreateClienteDto = req.body;
+
   try {
+    const dataNascimento = new Date(cliente.dataNascimento_cliente);
+    if (isNaN(dataNascimento.getTime())) {
+      return res
+        .status(StatusCodes.BAD_REQUEST)
+        .json({ error: "dataNascimento_cliente deve ser uma data válida." });
+    }
+
     if (
       (await checkCpfIsAvailable(cliente.CPF_cliente)) &&
       (await checkEmailIsAvailable(cliente.email_cliente))
     ) {
-      const novoCliente = await createCliente(cliente);
+      const novoCliente = await createCliente({
+        ...cliente,
+        dataNascimento_cliente: dataNascimento, // Use o objeto Date aqui
+      });
       res.status(StatusCodes.CREATED).json(novoCliente);
     } else {
       res.status(StatusCodes.CONFLICT).json({ error: ReasonPhrases.CONFLICT });
@@ -60,10 +72,18 @@ const read = async (req: Request, res: Response) => {
       .json({ error: ReasonPhrases.INTERNAL_SERVER_ERROR });
   }
 };
-
 const update = async (req: Request, res: Response) => {
   const { id } = req.params;
   const updatedCliente = req.body;
+
+  // Converte dataNascimento_cliente para um objeto Date
+  if (updatedCliente.dataNascimento_cliente) {
+    updatedCliente.dataNascimento_cliente = new Date(
+      updatedCliente.dataNascimento_cliente
+    );
+    updatedCliente.dataNascimento_cliente.setHours(0, 0, 0, 0); // Zera a parte da hora
+  }
+
   try {
     const idNumber = parseInt(id, 10);
     const cliente = await updateCliente(idNumber, updatedCliente);

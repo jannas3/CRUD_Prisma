@@ -1,13 +1,15 @@
-// src/index.ts
-import express, { Request, Response } from "express";
+import express from "express";
 import router from "./router";
+import validateEnv from "./utils/validadeEnv";
+
+validateEnv();
 
 const app = express();
-const PORT = 4466;
+const PORT = process.env.PORT || 3000;
 
 app.use(express.json());
 app.use(router);
 
 app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
+  console.log(`Servidor rodando na porta ${PORT}`);
 });
